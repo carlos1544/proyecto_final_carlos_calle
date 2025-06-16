@@ -1,31 +1,32 @@
 # Biblioteca Virtual - Viaje entre lineas
 
-**Integrantes:**  
-Carlos Calle
+-Integrantes:  
+Carlos Calle -
 Debora Bermeo
 
-## Descripción
+-Descripción
 Proyecto de biblioteca virtual con recomendador de libros usando IA.
 
-## Instalación
+-Instalación
 1. Clona el repositorio:
    git clone https://github.com/carlos1544/proyecto_final_carlos_calle
 2. Crea un entorno virtual:
-   python -m venv env  
+   python -m venv env
+3. Para activar el env:   
    source env/bin/activate  # en Linux/Mac  
    env\Scripts\activate     # en Windows
-3. Instala dependencias:
+4. Instala dependencias:
    pip install -r requirements.txt
 
-## Ejecución
+-Ejecución
 python manage.py runserver
 
 ## Funcionalidades
-- [x] Registro e inicio de sesión  
-- [x] Exploración de libros  
-- [x] Sistema de recomendaciones  
-- [x] Historial y favoritos
-- [x] Libro vs Libro
-- [x] Recomendación según estado de ánimo
-- [x] Recomendación por género
+Registro e inicio de sesión  
+Exploración de libros  
+Sistema de recomendaciones  
+Historial y favoritos
+Libro vs Libro
+Recomendación según estado de ánimo
+Recomendación por género
 
