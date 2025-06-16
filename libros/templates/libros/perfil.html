@@ -1,0 +1,60 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Perfil - Biblioteca Virtual</title>
+  
+  <link href="{% static 'css/main.css' %}" rel="stylesheet">
+</head>
+
+
+<body>
+  <div class="perfil-container">
+    <div class="perfil-col izquierda">
+      <button class="btn-inicio" onclick="window.location.href='{% url 'lista_libros' %}'">← Inicio</button>
+     <div class="perfil-header">
+        <h1 class="nombre">Debby Duar</h1>
+        <div class="acciones">
+        <button>editar perfil</button>
+        <button>Configuración</button>
+     </div>
+    </div>
+
+
+      <h2>Géneros favoritos</h2>
+      <div class="generos">
+        <span>Misterio</span>
+        <span>Terror</span>
+        <span>Romance</span>
+        <span>Fantasía</span>
+        <span>Crimen</span>
+      </div>
+
+      <h2>Últimos libros vistos</h2>
+      <div class="libros-vistos">
+        <div class="libro"></div>
+        <div class="libro"></div>
+        <div class="libro"></div>
+      </div>
+    </div>
+
+    <div class="perfil-col derecha">
+
+      <div class="contenido-leidos">
+        <h2>Libros leídos o marcados</h2>
+        <div class="libros-leidos">
+          <div class="libro"></div>
+          <div class="libro"></div>
+          <div class="libro"></div>
+          <div class="libro"></div>
+          <div class="libro"></div>
+          <div class="libro"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+

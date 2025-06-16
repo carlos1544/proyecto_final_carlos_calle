@@ -1,0 +1,24 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configuración</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="{% static 'css/main.css' %}" rel="stylesheet">
+
+</head>
+
+<body>
+  <div class="main-container">
+    <div class="username"><i class="fas fa-user-circle"></i> Debby Duar</div>
+    <ul class="config-options">
+      <li><a href="#"><i class="fas fa-user-edit"></i> Cambiar nombre de usuario</a></li>
+      <li><a href="#"><i class="fas fa-key"></i> Cambiar contraseña</a></li>
+      <li><a href="#"><i class="fas fa-user-times"></i> Eliminar cuenta</a></li>
+      <li><a href="#"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</a></li>
+    </ul>
+  </div>
+</body>
+</html>

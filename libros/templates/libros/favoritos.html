@@ -1,0 +1,40 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Libros Favoritos</title>
+  <link href="{% static 'css/main.css' %}" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins&family=Merriweather&display=swap" rel="stylesheet" />
+</head>
+
+<body>
+  <header class="header-favoritos">
+    <div class="menu-izquierda">
+      <i class="fas fa-bars"></i>
+    </div>
+
+    <div class="busqueda-centro">
+      <input type="text" placeholder="Buscar" />
+      <i class="fas fa-search"></i>
+    </div>
+
+    <div class="logo-derecha">
+      <img src="{% static 'img/logo.png' %}" alt="Logo" class="logo">
+      <span>Viajes entre líneas</span>
+    </div>
+  </header>
+
+  <main>
+    <h1 class="titulo-favoritos">Libros Favoritos</h1>
+
+    <section class="favoritos-container">
+      <div class="libro-favorito"></div>
+      <div class="libro-favorito"></div>
+      <div class="libro-favorito"></div>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,73 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Explorar libros - Viajes entre líneas</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link href="{% static 'css/main.css' %}" rel="stylesheet">
+</head>
+
+<body>
+  <header class="header-favoritos">
+  <div class="menu-izquierda">
+    <i class="fas fa-bars"></i>
+  </div>
+
+  <div class="busqueda-centro">
+    <input type="text" placeholder="Buscar" />
+    <i class="fas fa-search"></i>
+  </div>
+
+  <div class="logo-derecha">
+    <img src="{% static 'img/logo.png' %}" alt="Logo" class="logo">
+    <span>Viajes entre líneas</span>
+  </div>
+</header>
+
+    
+  <nav class="genre-menu">
+      <a href="#">Terror</a>
+      <a href="#">Romance</a>
+      <a href="#">Fantasía</a>
+      <a href="#">Cuentos</a>
+      <a href="#">Novelas</a>
+      <a href="#">Infantil</a>
+      <a href="#">Clásico</a>
+      <a href="#">Historia</a>
+      <a href="#">Autoayuda</a>
+      <a href="#">Crimen</a>
+      <div class="dropdown">
+        <button>más</button>
+        <div class="dropdown-content">
+          <a href="#">Misterio</a>
+          <a href="#">Drama</a>
+          <a href="#">Ciencia ficción</a>
+        </div>
+      </div>
+    </nav>
+ 
+
+  <main>
+    <section class="book-section">
+      <h2>Clásico</h2>
+      <div class="book-grid">
+        <div class="book-card"></div>
+        <div class="book-card"></div>
+        <div class="book-card"></div>
+        <div class="book-card"></div>
+      </div>
+    </section>
+    <section class="book-section">
+      <h2>Novelas</h2>
+      <div class="book-grid">
+        <div class="book-card"></div>
+        <div class="book-card"></div>
+        <div class="book-card"></div>
+        <div class="book-card"></div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

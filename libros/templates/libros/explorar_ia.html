@@ -1,0 +1,38 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Viajes entre líneas</title>
+
+  <link href="{% static 'css/main.css' %}" rel="stylesheet">
+
+</head>
+<body>
+  <header>
+    <div class="header-container">
+      <div class="menu-icon">☰</div>
+
+      <div class="search-container">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="Buscar">
+      </div>
+
+      <div class="logo-container">
+        <img src="{% static 'img/logo.png' %}" alt="Logo" class="logo">
+        <span class="logo-text">Viajes entre líneas</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="main-box">
+      <textarea class="big-input" placeholder="Escribe lo que quieres leer"></textarea>
+      <div class="button-group">
+        <button>Generos relacionados</button>
+        <button>Libro vs Libro</button>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

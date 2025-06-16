@@ -1,0 +1,44 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Historial - Viajes entre líneas</title>
+  <link href="{% static 'css/main.css' %}" rel="stylesheet">
+</head>
+<body>
+  <div class="contenedor-historial">
+     <button class="btn-inicio" onclick="window.location.href='{% url 'lista_libros' %}'">← Inicio</button>
+    <h1 class="titulo-historial">Historial</h1>
+    
+    <div class="panel-historial">
+      <div class="columna izquierda">
+        <div class="seccion">
+          <h2>Libros por leer</h2>
+          <div class="tarjetas">
+            <div class="tarjeta"></div>
+          </div>
+        </div>
+
+        <div class="seccion">
+          <h2>Libros leídos</h2>
+          <div class="tarjetas">
+            <div class="tarjeta"></div>
+            <div class="tarjeta"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="columna derecha">
+        <div class="seccion">
+          <h2>Historial de recomendaciones por IA</h2>
+          <div class="tarjetas">
+            <div class="tarjeta"></div>
+            <div class="tarjeta"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
