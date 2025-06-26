@@ -9,15 +9,25 @@
 
   <link href="{% static 'css/main.css' %}" rel="stylesheet">
 </head>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+  }
+</style>
 
 
 <body>
   <header class="header">
-    <div class="header-content">
-      <img src="{% static 'img/logo.png' %}" alt="Logo" class="logo">
-      <h1 class="titulo">Viajes entre líneas</h1>
-    </div>
+  <div class="logo-container">
+    <img src="{% static 'img/logo.png' %}" alt="Logo" class="logo logo-explorar">
+    <span class="logo-text">Viajes entre líneas</span>
+  </div>
   </header>
+  <div id="toast" class="toast hidden"></div>
+
 
   <main class="login-container">
     <div class="login-box">
@@ -27,15 +37,34 @@
         {% csrf_token %}
         <label for="usuario">Usuario</label>
         <input type="text" id="usuario" name="usuario" placeholder="Ingrese su nombre de usuario" required />
+        
 
         <label for="password">Contraseña</label>
         <input type="password" id="password" name="password" placeholder="Ingrese su contraseña" required />
+        
 
         <button type="submit">Iniciar sesión</button>
       </form>
 
     </div>
   </main>
+  {% if messages %}
+  <script>
+    const toast = document.getElementById('toast');
+    {% for message in messages %}
+      toast.textContent = "{{ message|escapejs }}";
+      toast.classList.remove('hidden');
+      toast.classList.add('show');
+
+      // Ocultar después de 3 segundos
+      setTimeout(() => {
+        toast.classList.remove('show');
+        toast.classList.add('hidden');
+      }, 3000);
+    {% endfor %}
+  </script>
+{% endif %}
+
 </body>
 </html>
 

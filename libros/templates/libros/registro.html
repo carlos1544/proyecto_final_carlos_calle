@@ -8,114 +8,67 @@
 
     <link href="{% static 'css/main.css' %}" rel="stylesheet">
   </head>
-
+  <style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+  }
+</style>
   <body>
+    <div id="toast" class="toast hidden"></div>
+    
     <header class="header">
-      <div class="header-content">
-        <img src="{% static 'img/logo.png' %}" alt="Logo" class="logo">
-        <h1 class="titulo">Viajes entre líneas</h1>
+      <div class="logo-container">
+        <img src="{% static 'img/logo.png' %}" alt="Logo" class="logo logo-explorar">
+        <span class="logo-text">Viajes entre líneas</span>
       </div>
-    </header>
 
+    </header>
   <main class="registro-main">
     <div class="registro-card">
       <h2>Crear una cuenta</h2>
-      <form action="{% url 'registro' %}" method="post" class="registro-form">
-        {% csrf_token %}
-        <label for="nombre">Nombre completo</label>
-        <input type="text" id="nombre" name="nombre" required />
+      <form action="{% url 'registro' %}" method="post" class="registro-form" onsubmit="return validarFormulario()">
+      {% csrf_token %}
 
-        <label for="email">Correo electrónico</label>
-        <input type="email" id="email" name="email" required />
+      <label for="nombre">Nombre de usuario</label>
+      <input type="text" id="nombre" name="nombre" required minlength="4" maxlength="20"
+            pattern="[A-Za-z0-9_]+" title="Solo letras, números y guiones bajos" />
 
-        <label for="usuario">Nombre de usuario</label>
-        <input type="text" id="usuario" name="usuario" required />
+      <label for="email">Correo electrónico</label>
+      <input type="email" id="email" name="email" required
+            pattern="^[a-zA-Z0-9._%+-]+@(gmail|hotmail|outlook)\.com$"
+            title="Solo se aceptan correos de gmail.com, hotmail.com o outlook.com" />
 
-        <label for="contraseña">Contraseña</label>
-        <input type="contraseña" id="contraseña" name="contraseña" required />
+      <label for="contraseña">Contraseña</label>
+      <input type="password" id="contraseña" name="contraseña" required minlength="6" />
 
-        <label for="confirm-password">Confirmar contraseña</label>
-        <input type="contraseña" id="confirm-contraseña" name="confirm-contraseña" required />
+      <label for="confirm-contraseña">Confirmar contraseña</label>
+      <input type="password" id="confirm-contraseña" name="confirm-contraseña" required minlength="6" />
 
-        <p class="login-link">¿Ya tienes cuenta? <a href="{% url 'login' %}">Inicia sesión</a></p>
+      <p class="login-link">¿Ya tienes cuenta? <a href="{% url 'login' %}">Inicia sesión</a></p>
 
-        <button type="submit" class="btn-submit">Registrarse</button>
-      </form>
+      <button type="submit" class="btn-submit">Registrarse</button>
+    </form>
     </div>
-    <div id="modal-preferencia-1" class="modal hidden">
-            <div class="modal-content">
-              <h2>Queremos conocer más de ti</h2>
-              <p>¿Qué géneros te gustan?</p>
-              <div class="options">
-                <button class="option">Fantasía</button>
-                <button class="option">Romance</button>
-                <button class="option">Ciencia ficción</button>
-                <button class="option">Terror</button>
-                <button class="option">Cuentos</button>
-                <button class="option">Novelas</button>
-                <button class="option">Clásico</button>
-                <button class="option">Autoayuda</button>
-                <button class="option">Drama</button>
-                <button class="option">Misterio</button>
-                <button class="option">Crimen</button>
-              </div>
-              <button id="next-1" class="btn-next">Siguiente</button>
-            </div>
-          </div>
-
-          <div id="modal-preferencia-2" class="modal hidden">
-            <div class="modal-content">
-              <h2>¿Prefieres finales felices o impactantes?</h2>
-              <div class="options">
-                <button class="option">Finales Abiertos</button>
-                <button class="option">Finales Impactantes</button>
-              </div>
-              <button id="next-2" class="btn-next">Siguiente</button>
-            </div>
-          </div>
-
-          <div id="modal-preferencia-3" class="modal hidden">
-            <div class="modal-content">
-              <h2>¿Te interesa leer libros populares o poco conocidos?</h2>
-              <div class="options">
-                <button class="option">Libros populares</button>
-                <button class="option">Libros poco conocidos</button>
-              </div>
-              <button id="finish" class="btn-next">Finalizar</button>
-            </div>
-          </div>
   </main>
+ {% if messages %}
+  <script>
+    const toast = document.getElementById('toast');
+    {% for message in messages %}
+      toast.textContent = "{{ message|escapejs }}";
+      toast.classList.remove('hidden');
+      toast.classList.add('show');
 
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const mostrarEncuesta = "{{ mostrar_encuesta|yesno:'true,false' }}";
-
-    if (mostrarEncuesta === "true") {
-        const modal1 = document.getElementById('modal-preferencia-1');
-        const modal2 = document.getElementById('modal-preferencia-2');
-        const modal3 = document.getElementById('modal-preferencia-3');
-
-        modal1.classList.remove('hidden');
-
-        document.getElementById('next-1').addEventListener('click', function () {
-            modal1.classList.add('hidden');
-            modal2.classList.remove('hidden');
-        });
-
-        document.getElementById('next-2').addEventListener('click', function () {
-            modal2.classList.add('hidden');
-            modal3.classList.remove('hidden');
-        });
-        document.getElementById('finish').addEventListener('click', function () {
-            modal3.classList.add('hidden');
-            alert("¡Gracias por contarnos tus preferencias!");
-            window.location.href = "/index/";
-        });
-    }
-});
-</script>
-
-
+      // Ocultar después de 3 segundos
+      setTimeout(() => {
+        toast.classList.remove('show');
+        toast.classList.add('hidden');
+      }, 3000);
+    {% endfor %}
+  </script>
+{% endif %}
 
 </body>
 </html>

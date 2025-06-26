@@ -1,0 +1,149 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle del Libro - Viajes entre líneas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="{% static 'css/main.css' %}" rel="stylesheet">
+
+</head>
+<body>
+    <div class="detalle-libro-container">
+        <!-- Header con navegación -->
+        <header>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+  <div class="header-container">
+  <div class="hamburger-menu">
+      <i class="fas fa-bars"></i>
+    </div>
+
+    <nav class="side-menu">
+    <ul>
+      <li><a href="{% url 'inicio' %}"><i class="fas fa-home"></i> Inicio</a></li>
+      <li><a href="{% url 'explorar_ia' %}"><i class="fas fa-lightbulb"></i> Explorar con IA</a></li>
+      <li><a href="{% url 'historial' %}"><i class="fas fa-history"></i> Historial</a></li>
+      <li><a href="{% url 'favoritos' %}"><i class="fas fa-heart"></i> Mis favoritos</a></li>
+      <li><a href="{% url 'perfil' %}"><i class="fas fa-user"></i> Perfil</a></li>
+      <li><a href="{% url 'configuracion' %}"><i class="fas fa-cog"></i> Configuración</a></li>
+      <li><a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</a></li>
+    </ul>
+  </nav>
+
+      <div class="logo-ia-container explorar-ia">
+        <img src="{% static 'img/logo.png' %}" alt="Logo" class="logo logo-explorar">
+        <span class="logo-text">Viajes entre líneas</span>
+      </div>  
+ 
+</header>
+
+        <main class="dl-detalle-content">
+          <div class="libro-portada-container">
+            <img src="{{ libro.portada }}" alt="{{ libro.titulo }}" class="dl-libro-portada-grande">
+          </div>
+
+          <div class="dl-libro-info-container">
+            <h1 class="dl-libro-titulo">{{ libro.titulo }}</h1>
+            <p class="dl-libro-autor">
+              <strong>Autor:</strong> {{ libro.autor }}
+            </p>
+            <p class="dl-libro-generos">
+              <strong>Género:</strong> {{ libro.genero }}
+            </p>
+            <div class="dl-libro-acciones">
+              <div class="dl-libro-acciones">
+                <!-- Botón Leer -->
+                <a href="{% url 'leer_libro' libro.id %}" 
+                  id="btn-leer" 
+                  class="dl-btn-leer" 
+                  data-libro-id="{{ libro.id }}">
+                  <i class="fas fa-book-open"></i> Leer
+                </a>
+
+                <!-- Botón Favoritos -->
+                <button class="dl-btn-favoritos" data-libro-id="{{ libro.id }}">
+                  <i class="fas fa-star"></i> Favoritos
+                </button>
+
+                <!-- Botón Leído -->
+                <button id="btn-leido" class="dl-btn-leido" data-libro-id="{{ libro.id }}">
+                  {% if libro_usuario_estado == 'leido' %}
+                    ✅ Leído
+                  {% else %}
+                    📘 Marcar como leído
+                  {% endif %}
+                </button>
+              </div>
+
+                 </div> 
+              
+              <button type="submit">Guardar</button>
+            </form>
+            </div>
+            <section class="dl-libro-descripcion">
+              <p>{{ libro.descripcion }}</p>
+            </section>
+          </div>
+        </main>
+
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const csrfToken = '{{ csrf_token }}';
+
+  // Botón LEÍDO
+  const btnLeido = document.getElementById('btn-leido');
+  if (btnLeido) {
+    btnLeido.addEventListener('click', async function (e) {
+      e.preventDefault();
+      const libroId = this.dataset.libroId;
+
+      const response = await fetch("{% url 'marcar_estado_libro' %}", {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrfToken,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          libro_id: libroId,
+          estado: 'leido',
+        }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        this.innerText = '✅ Leído';
+      } else {
+        alert('Error al marcar como leído: ' + (data.error || ''));
+      }
+    });
+  }
+
+  // Botón LEER (marcar como por_leer antes de navegar)
+  const btnLeer = document.getElementById('btn-leer');
+  if (btnLeer) {
+    btnLeer.addEventListener('click', async function (e) {
+      const libroId = this.dataset.libroId;
+
+      await fetch("{% url 'marcar_estado_libro' %}", {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrfToken,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          libro_id: libroId,
+          estado: 'por_leer',
+        }),
+      });
+      // No se previene el default para que el usuario vaya a la página de lectura
+    });
+  }
+});
+</script>
+
+<script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>

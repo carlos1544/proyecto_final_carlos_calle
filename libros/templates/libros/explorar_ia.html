@@ -8,31 +8,311 @@
   <link href="{% static 'css/main.css' %}" rel="stylesheet">
 
 </head>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+  }
+</style>
 <body>
   <header>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
     <div class="header-container">
-      <div class="menu-icon">☰</div>
+      <div class="hamburger-menu">
+        <i class="fas fa-bars"></i>
+        <nav class="side-menu">
+          <ul>
+            <li><a href="{% url 'inicio' %}"><i class="fas fa-home"></i> Inicio</a></li>
+            <li><a href="{% url 'explorar_libros' %}"><i class="fas fa-book"></i> Explorar libros</a></li>
+            <li><a href="{% url 'historial' %}"><i class="fas fa-history"></i> Historial</a></li>
+            <li><a href="{% url 'favoritos' %}"><i class="fas fa-heart"></i> Mis favoritos</a></li>
+            <li><a href="{% url 'perfil' %}"><i class="fas fa-user"></i> Perfil</a></li>
+            <li><a href="{% url 'configuracion' %}"><i class="fas fa-cog"></i> Configuración</a></li>
+            <li><a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</a></li>
+          </ul>
+        </nav>
+      </div>  
 
-      <div class="search-container">
-        <span class="search-icon">🔍</span>
-        <input type="text" placeholder="Buscar">
-      </div>
 
-      <div class="logo-container">
-        <img src="{% static 'img/logo.png' %}" alt="Logo" class="logo">
-        <span class="logo-text">Viajes entre líneas</span>
-      </div>
+    <div class="logo-ia-container explorar-ia">
+      <img src="{% static 'img/logo.png' %}" alt="Logo" class="logo logo-explorar">
+      <span class="logo-text">Viajes entre líneas</span>
     </div>
-  </header>
+
+
+   </div>
+  </div>
+</header>
 
   <main>
-    <div class="main-box">
-      <textarea class="big-input" placeholder="Escribe lo que quieres leer"></textarea>
-      <div class="button-group">
-        <button>Generos relacionados</button>
-        <button>Libro vs Libro</button>
-      </div>
+    <div class="perfil-container" >
+      <div class="perfil-col izquierda">
+        <textarea class="big-input" id="descripcionInput" placeholder="Escribe lo que quieres leer"></textarea>
+        <div class="button-group">
+          <button id="recomendarBtn">Recomendar</button>
+          <button id="generosRelacionadosButton">Generos relacionados</button>
+          <button id="botonComparar" class="btn-libro-vs-libro">Libro vs Libro</button>
+
+        </div>
+      </div> 
+      <div class="perfil-col derecha">
+        <div class="section-header" >
+          <h2>Libros recomendados</h2>
+            <div class="book-grid-container">
+              <div id="recomendacionesContainer" class="book-grid" ></div>
+            </div>
+        </div>
+      
+    </div>   
     </div>
+     <script> 
+      document.addEventListener("DOMContentLoaded", function () {
+        const btn = document.getElementById("recomendarBtn");
+        const input = document.getElementById("descripcionInput");
+        const contenedor = document.getElementById("recomendacionesContainer");
+
+        btn.addEventListener("click", () => {
+          const descripcion = input.value.trim();
+          if (!descripcion) {
+            alert("Por favor, escribe lo que deseas leer.");
+            return;
+          }
+          fetch(`/recomendar/?descripcion=${encodeURIComponent(descripcion)}`)
+            .then(response => response.json())
+            .then(data => {
+              contenedor.innerHTML = "";  // Limpia anteriores
+              if (data.recomendaciones && data.recomendaciones.length > 0) {
+                data.recomendaciones.forEach(item => {
+                const card = document.createElement("div");
+                card.classList.add("book-item");
+
+                const link = document.createElement("a");
+                link.href = `/libro/${item.id}/`;
+
+                const img = document.createElement("img");
+                img.src = item.portada;
+                img.alt = item.titulo || "Portada";
+
+                link.appendChild(img);
+                card.appendChild(link);
+                contenedor.appendChild(card);
+              });
+
+              } else {
+                contenedor.innerHTML = "<p style='color: white;'>No se encontraron recomendaciones.</p>";
+              }
+            })
+            .catch(error => {
+              console.error("Error:", error);
+              contenedor.innerHTML = "<p style='color: white;'>Error al obtener recomendaciones.</p>";
+            });
+        });
+      });
+  </script>
   </main>
+ 
+<!-- libro vs libro-->
+
+<!-- Modal -->
+<div id="compararModal" class="modal hidden">
+  <div class="modal-content">
+    <h2>LIBRO VS LIBRO</h2>
+    <p>En esta dinámica se te va a presentar 5 libros, pero en manera de comparativa 1 vs 1. Elige el que más te guste para leerlo.</p>
+    <div class="book-comparison">
+      <div class="book" id="book1"></div>
+      <div class="book" id="book2"></div>
+    </div>
+    <button id="closeModalButton" class="close-modal">Cerrar</button>
+  </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const modal = document.getElementById('compararModal');
+  const closeModalButton = document.getElementById('closeModalButton');
+  const book1Div = document.getElementById('book1');
+  const book2Div = document.getElementById('book2');
+
+  let libros = [];
+  let totalMostrados = 0;
+  let elegidoActual = null;
+  let siguienteIndex = 2;
+  let finalizado = false;  // Nueva variable para controlar el estado final
+  
+  function iniciarComparacion() {
+    // Resetear todo al iniciar
+    libros = [];
+    totalMostrados = 2;
+    elegidoActual = null;
+    siguienteIndex = 2;
+    finalizado = false;
+    // Quitar botón detalle si existe
+    const botonExistente = modal.querySelector('.detalle-final');
+    if (botonExistente) botonExistente.remove();
+
+    fetch('/obtener_libros_vs/')
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) {
+          alert(data.error);
+          return;
+        }
+        libros = data.libros;
+        mostrarDuelos(libros[0], libros[1]);
+        modal.classList.remove('hidden');
+        console.log('Libros recibidos:', libros);
+
+      })
+      .catch(err => console.error('Error al obtener libros:', err));
+  }
+
+  function mostrarDuelos(libroA, libroB) {
+    if (finalizado) return; // Si ya finalizó no mostrar más duelos
+    
+    console.log('Descripción libro A:', libroA.descripcion);
+    console.log('Descripción libro B:', libroB.descripcion);
+    book1Div.innerHTML = `
+      <div class="libro-con-info">
+        <img src="${libroA.portada}" data-id="${libroA.id}" class="portada" data-pos="0">
+       
+      </div>
+       <div class="info-icon" title="${libroA.descripcion}">i</div>
+    `;
+
+    book2Div.innerHTML = `
+      <div class="libro-con-info">
+        <img src="${libroB.portada}" data-id="${libroB.id}" class="portada" data-pos="1">
+        
+      </div>
+      <div class="info-icon" title="${libroB.descripcion}">i</div>
+    `;
+
+    const portada1 = book1Div.querySelector('.portada');
+    const portada2 = book2Div.querySelector('.portada');
+
+    portada1.onclick = () => manejarSeleccion(libroA, libroB, 0);
+    portada2.onclick = () => manejarSeleccion(libroA, libroB, 1);
+  }
+
+  function manejarSeleccion(libroA, libroB, pos) {
+    if (finalizado) return; // No permitir más selecciones tras finalizar
+
+    const elegido = pos === 0 ? libroA : libroB;
+    elegidoActual = elegido;
+
+    if (totalMostrados >= 5) {
+      finalizado = true;
+      guardarSeleccionFinal(elegidoActual.id);
+
+      // Crear botón detalles solo si no existe
+      if (!modal.querySelector('.detalle-final')) {
+        const botonDetalle = document.createElement('button');
+        botonDetalle.className = 'detalle-final';
+        botonDetalle.innerText = 'Más detalles del libro elegido';
+        botonDetalle.onclick = () => {
+          window.location.href = `/detalle_libro/${elegidoActual.id}/`;
+        };
+        modal.querySelector('.modal-content').appendChild(botonDetalle);
+      }
+      return;
+    }
+
+    if (siguienteIndex < libros.length) {
+      const nuevoLibro = libros[siguienteIndex];
+      siguienteIndex++;
+      totalMostrados++;
+
+      if (pos === 0) {
+        mostrarDuelos(elegido, nuevoLibro);
+      } else {
+        mostrarDuelos(nuevoLibro, elegido);
+      }
+    } else {
+      alert('No hay más libros disponibles');
+    }
+  }
+
+  function guardarSeleccionFinal(libro_id) {
+    fetch('/guardar_seleccion_vs/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCSRFToken(),
+      },
+      body: JSON.stringify({ elegido: libro_id })
+    });
+  }
+
+  document.getElementById('botonComparar').addEventListener('click', iniciarComparacion);
+
+  function getCSRFToken() {
+    const name = 'csrftoken';
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+      cookie = cookie.trim();
+      if (cookie.startsWith(name + '=')) {
+        return decodeURIComponent(cookie.substring(name.length + 1));
+      }
+    }
+    return '';
+  }
+
+  // Cerrar modal
+  closeModalButton.addEventListener('click', () => {
+    modal.classList.add('hidden');
+  });
+});
+</script>
+
+<style>
+  .libro-con-info {
+  position: relative;
+  display: inline-block;
+}
+
+.info-icon {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: center;
+  cursor: default;
+  user-select: none;
+  transition: background-color 0.3s ease;
+}
+
+.info-icon:hover {
+  background-color: rgba(0, 0, 0, 0.85);
+}
+
+</style>
+
+
+<!-- Modal Géneros Relacionados -->
+<div id="generosModal" class="modal hidden">
+  <div class="modal-content generos-modal">
+    <h2>Géneros relacionados</h2>
+    <p class="generos-subtitle">Basado en tus intereses recientes, podrías explorar:</p>
+    
+    <div class="generos-grid">
+      <button class="genero-btn" data-genero="terror">Terror</button>
+      <button class="genero-btn" data-genero="suspenso">Suspenso</button>
+      <button class="genero-btn" data-genero="fantasia-oscura">Fantasía oscura</button>
+      <button class="genero-btn" data-genero="crimen">Crimen</button>
+    </div>
+    
+    <button id="closeGenerosButton" class="close-modal">Cerrar</button>
+  </div>
+</div>
+
+  <script src="{% static 'js/main.js' %}"></script>
 </body>
 </html>

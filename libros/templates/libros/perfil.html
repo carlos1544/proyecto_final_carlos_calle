@@ -13,34 +13,36 @@
 <body>
   <div class="perfil-container">
     <div class="perfil-col izquierda">
-      <button class="btn-inicio" onclick="window.location.href='{% url 'lista_libros' %}'">← Inicio</button>
+      <button class="btn-inicio" onclick="window.location.href='{% url 'inicio' %}'">← Inicio</button>
      <div class="perfil-header">
-        <h1 class="nombre">Debby Duar</h1>
+        <h1 class="nombre">
+          {% if user.is_authenticated %}
+            {{ user.nombre }}
+          {% else %}
+            Invitado
+          {% endif %}
+        </h1>
         <div class="acciones">
-        <button>editar perfil</button>
-        <button>Configuración</button>
+        <button><a href="{% url 'configuracion' %}" >configuración</a></button>
      </div>
     </div>
 
 
       <h2>Géneros favoritos</h2>
-      <div class="generos">
-        <span>Misterio</span>
-        <span>Terror</span>
-        <span>Romance</span>
-        <span>Fantasía</span>
-        <span>Crimen</span>
-      </div>
+        <div class="generos">
+          {% if generos_favoritos %}
+            {% for genero in generos_favoritos %}
+              <span>{{ genero }}</span>
+            {% endfor %}
+          {% else %}
+            <span>No hay géneros favoritos registrados</span>
+          {% endif %}
+        </div>
 
-      <h2>Últimos libros vistos</h2>
-      <div class="libros-vistos">
-        <div class="libro"></div>
-        <div class="libro"></div>
-        <div class="libro"></div>
-      </div>
+
     </div>
 
-    <div class="perfil-col derecha">
+  <div class="perfil-col derecha">
 
       <div class="contenido-leidos">
         <h2>Libros leídos o marcados</h2>

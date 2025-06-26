@@ -1,22 +1,36 @@
 from django.urls import path
-from .views import lista_libros
-from . import views
 from django.contrib.auth.views import LogoutView
+from . import views
 
-
-urlpatterns = [
-    path('', lista_libros, name='lista_libros'),  
-    path('recomendador/', views.recomendar_view, name='recomendador'),
+urlpatterns = [ 
+    path('', views.inicio, name='inicio'),
+    path('index/', views.inicio, name='inicio'),
+    path('guardar_preferencias/', views.guardar_preferencias, name='guardar_preferencias'),
+    path('recomendar/', views.recomendar_view, name='recomendar'),
     path('libros/', views.lista_libros, name='lista_libros'),
-    path('login/', views.login_view, name='login'),
-    path('registro/', views.registro, name='registro'),
     path('perfil/', views.perfil, name='perfil'),
     path('explorar-libros/', views.explorar_libros, name='explorar_libros'),
     path('explorar-IA/', views.explorar_ia, name='explorar_ia'),
     path('historial/', views.historial, name='historial'),
-    path('favoritos/', views.favoritos, name='favoritos'), 
-    path('configuracion/', views.configuracion, name='configuracion'), 
-    path('index/', views.inicio, name='inicio'),
+    path('favoritos/', views.favoritos, name='favoritos'),
+    path('configuracion/', views.configuracion, name='configuracion'),
+    path('detalle-libro/', views.detalle_libro, name='detalle_libro'),
+    path('obtener_libros_vs/', views.obtener_libros_comparacion, name='obtener_libros_vs'),
+    path('libro/<int:libro_id>/', views.detalle_libro, name='detalle_libro'),
+    path('libro_vs_libro/', views.libro_vs_libro, name='libro_vs_libro'),
+    path('detalle_libro/<int:libro_id>/', views.detalle_libro, name='detalle_libro'),
+    path('guardar_seleccion_vs/', views.guardar_seleccion_vs, name='guardar_seleccion_vs'),
+    path('recomendados_por_genero/', views.recomendados_por_genero, name='recomendados_por_genero'),
+    path('configuracion/cambiar_nombre/', views.cambiar_nombre, name='cambiar_nombre'),
+    path('configuracion/cambiar_contrasena/', views.cambiar_contrasena, name='cambiar_contrasena'),
+    path('configuracion/eliminar_cuenta/', views.eliminar_cuenta, name='eliminar_cuenta'),
+    path('agregar_a_favoritos/', views.agregar_a_favoritos, name='agregar_a_favoritos'),
+    path('libros_genero/<str:genero>/', views.libros_por_genero, name='libros_por_genero'),
+    path('marcar_estado_libro/', views.marcar_estado_libro, name='marcar_estado_libro'),
+    path('buscar_libros/', views.buscar_libros, name='buscar_libros'),
+    path('leer/<int:libro_id>/', views.leer_libro, name='leer_libro'),
+    path('historial/', views.historial, name='historial'),
+    path('login/', views.login_view, name='login'),
+    path('registro/', views.registro, name='registro'),
     path('logout/', views.logout_view, name='logout'),
-
 ]

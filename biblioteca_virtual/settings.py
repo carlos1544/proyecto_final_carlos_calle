@@ -41,7 +41,6 @@ INSTALLED_APPS = [
     'mssql',
 ]
 
-AUTH_USER_MODEL = 'libros.Usuario'
 
 LOGOUT_REDIRECT_URL = '/'
 
@@ -112,6 +111,10 @@ DATABASES = {
 }
 
 
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -160,3 +163,12 @@ DEBUG = True
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+
+LOGIN_URL = '/login/'  
+LOGIN_REDIRECT_URL = '/perfil/' 
+LOGOUT_REDIRECT_URL = '/login/'  
+
+AUTH_USER_MODEL = 'libros.Usuario'  
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

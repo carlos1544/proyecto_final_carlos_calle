@@ -11,30 +11,59 @@
 </head>
 
 <body>
-  <header class="header-favoritos">
-    <div class="menu-izquierda">
-      <i class="fas fa-bars"></i>
-    </div>
+  <header>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
-    <div class="busqueda-centro">
-      <input type="text" placeholder="Buscar" />
-      <i class="fas fa-search"></i>
-    </div>
+    <div class="header-container">
+      <div class="hamburger-menu">
+        <i class="fas fa-bars"></i>
+        <nav class="side-menu">
+          <ul>
+          <li><a href="{% url 'inicio' %}"><i class="fas fa-home"></i> Inicio</a></li>
+          <li><a href="{% url 'explorar_ia' %}"><i class="fas fa-lightbulb"></i> Explorar con IA</a></li>
+          <li><a href="{% url 'explorar_libros' %}"><i class="fas fa-book"></i> Explorar libros</a></li>
+          <li><a href="{% url 'historial' %}"><i class="fas fa-history"></i> Historial</a></li>
+          <li><a href="{% url 'perfil' %}"><i class="fas fa-user"></i> Perfil</a></li>
+          <li><a href="{% url 'configuracion' %}"><i class="fas fa-cog"></i> Configuración</a></li>
+          <li><a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</a></li>
+          </ul>
+        </nav>
+      </div>  
+      
+    <div class="barra-superior">
+          <!-- Centro: buscador -->
+      <div class="centro">
+        <div class="buscar-container">
+          <input type="text" id="descripcionInput" placeholder="Buscar">
+          <button id="buscarBtn"><i class="fas fa-search"></i></button>
+        </div>
+      </div>
 
-    <div class="logo-derecha">
-      <img src="{% static 'img/logo.png' %}" alt="Logo" class="logo">
-      <span>Viajes entre líneas</span>
+    <!-- Derecha: logo + texto -->
+    <div class="logo-container">
+      <img src="{% static 'img/logo.png' %}" alt="Logo" class="logo logo-explorar">
+      <span class="logo-text">Viajes entre líneas</span>
     </div>
+</div>
   </header>
 
   <main>
-    <h1 class="titulo-favoritos">Libros Favoritos</h1>
+  <h1 class="titulo-favoritos">Libros Favoritos</h1>
 
-    <section class="favoritos-container">
-      <div class="libro-favorito"></div>
-      <div class="libro-favorito"></div>
-      <div class="libro-favorito"></div>
-    </section>
-  </main>
+  <section class="favoritos-container">
+    {% if libros_favoritos %}
+      {% for libro in libros_favoritos %}
+        <div class="book-placeholder">
+          <a href="{% url 'detalle_libro' libro.id %}">
+            <img src="{{ libro.portada }}" alt="{{ libro.titulo }}">
+          </a>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>No tienes libros marcados como favoritos aún.</p>
+    {% endif %}
+  </section>
+</main>
+  <script src="{% static 'js/main.js' %}"></script>
 </body>
 </html>

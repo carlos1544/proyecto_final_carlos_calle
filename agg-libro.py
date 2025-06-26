@@ -1,109 +1,418 @@
-import pymssql
+import os
+import time
+import random
 import requests
+import pyodbc
+from collections import Counter, defaultdict
+from biblioteca_virtual.settings import DATABASES
 
-def fetch_book_details(key):
-    url = f"https://openlibrary.org{key}.json"
-    response = requests.get(url)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        print(f"Error al obtener detalles para {key}: {response.status_code}")
+# Constantes API
+GOOGLE_BOOKS_API_URL = "https://www.googleapis.com/books/v1/volumes"
+OPENLIBRARY_API_URL = "https://openlibrary.org/search.json"
+
+# Contadores globales para métricas y descartes
+descartes = Counter()
+search_stats = defaultdict(int)
+
+
+# === Conexión a base de datos ===
+def get_connection():
+    """Establecer conexión a BD usando configuración existente"""
+    config = DATABASES['default']
+    driver = config['OPTIONS']['driver']
+    trusted = config['OPTIONS'].get('trusted_connection', 'no')
+
+    conn_str = (
+        f"DRIVER={{{driver}}};"
+        f"SERVER={config['HOST']},{config['PORT']};"
+        f"DATABASE={config['NAME']};"
+        f"Trusted_Connection={trusted};"
+    )
+    return pyodbc.connect(conn_str)
+
+
+# === Estrategias de búsqueda por género ===
+def get_genre_search_strategies(genre):
+    """Generar múltiples estrategias de búsqueda para un género dado"""
+    strategies = [
+        f"subject:{genre}",
+        f"categories:{genre}",
+        f"intitle:{genre}",
+        f"{genre}",
+        f"genre:{genre}",
+    ]
+
+    genre_variations = {
+        'fantasia': ['fantasy', 'magia', 'magic', 'dragons', 'dragones', 'elfos', 'elves', 'aventura'],
+        'romance': ['amor', 'love', 'romantic', 'romantico', 'corazón', 'heart'],
+        'misterio': ['mystery', 'detective', 'crimen', 'crime', 'suspense', 'thriller'],
+        'ciencia_ficcion': ['science fiction', 'sci-fi', 'futuro', 'future', 'space', 'espacio'],
+        'terror': ['horror', 'miedo', 'fear', 'supernatural', 'sobrenatural', 'ghost'],
+        'aventura': ['adventure', 'action', 'accion', 'journey', 'viaje', 'exploration'],
+        'biografia': ['biography', 'biografía', 'memoir', 'memorias', 'life story'],
+        'historia': ['history', 'historical', 'historico', 'past', 'pasado', 'war'],
+        'autoayuda': ['self help', 'personal development', 'desarrollo personal', 'motivational']
+    }
+
+    variations = genre_variations.get(genre, [genre])
+
+    for variation in variations:
+        strategies.extend([
+            f"subject:{variation}",
+            f"intitle:{variation}",
+            f"{variation}",
+            f"categories:{variation}"
+        ])
+
+    strategies.extend([
+        f"subject:{genre} OR categories:{genre}",
+        f"intitle:{genre} OR subject:{genre}",
+        f"{genre} fiction",
+        f"{genre} novela",
+        f"libro {genre}",
+        f"book {genre}"
+    ])
+
+    return list(set(strategies))  # Eliminar duplicados
+
+
+# === Obtención de libros con estrategia ===
+def fetch_books_with_strategy(strategy, genre, target_count=40, max_pages=5):
+    """Obtener libros usando una estrategia de búsqueda específica"""
+    print(f"\n[fetch_books_with_strategy] Estrategia: '{strategy}' - Objetivo: {target_count} libros")
+
+    collected_books = []
+    start_index = 0
+    max_results = 40
+    empty_pages = 0
+    consecutive_failures = 0
+
+    while len(collected_books) < target_count and empty_pages < max_pages:
+        if start_index > 0:
+            time.sleep(random.uniform(0.5, 1.5))
+
+        params = {
+            'q': strategy,
+            'langRestrict': 'es',
+            'printType': 'books',
+            'maxResults': max_results,
+            'startIndex': start_index,
+            'orderBy': 'relevance'
+        }
+
+        try:
+            response = requests.get(GOOGLE_BOOKS_API_URL, params=params, timeout=15)
+            response.raise_for_status()
+            data = response.json()
+            items = data.get('items', [])
+
+            search_stats[f"pages_fetched_{strategy[:20]}"] += 1
+            print(f"[fetch_books_with_strategy] Página {start_index // max_results + 1}: {len(items)} libros recibidos")
+
+            if not items:
+                empty_pages += 1
+                consecutive_failures += 1
+                if consecutive_failures >= 3:
+                    params['orderBy'] = 'newest'
+                    consecutive_failures = 0
+                start_index += max_results
+                continue
+
+            empty_pages = 0
+            consecutive_failures = 0
+
+            for item in items:
+                parsed = parse_book_data_improved(item, fixed_genre=genre)
+                if parsed and not any(book['title'].lower() == parsed['title'].lower() for book in collected_books):
+                    collected_books.append(parsed)
+                    if len(collected_books) >= target_count:
+                        break
+
+            start_index += max_results
+
+        except requests.RequestException as e:
+            print(f"[fetch_books_with_strategy][ERROR] {e}")
+            empty_pages += 1
+            if empty_pages >= 3:
+                break
+            time.sleep(2)
+
+    search_stats[f"books_found_{strategy[:20]}"] = len(collected_books)
+    print(f"[fetch_books_with_strategy] Estrategia '{strategy}' obtuvo {len(collected_books)} libros válidos")
+    return collected_books
+
+
+# === Parsing y validación avanzada de datos de libro ===
+def parse_book_data_improved(book_item, fixed_genre=None):
+    """Parseo mejorado de datos de libro con validaciones flexibles"""
+    volume_info = book_item.get("volumeInfo", {})
+
+    language = volume_info.get("language", "").lower()
+    if language and language not in ['es', 'es-es', 'spanish', 'spa']:
+        title = volume_info.get("title", "").lower()
+        description = volume_info.get("description", "").lower()
+        spanish_indicators = ['ñ', 'está', 'año', 'niño', 'español', 'méxico', 'argentina', 'chile']
+        if not any(ind in title + description for ind in spanish_indicators):
+            descartes["No español"] += 1
+            return None
+
+    title = volume_info.get("title", "").strip()
+    if not title or title == "Sin título":
+        descartes["Sin título"] += 1
+        return None
+    if len(title) < 2:
+        descartes["Título muy corto"] += 1
         return None
 
-def parse_book_data(raw_book, fixed_genre=None):
-    print(f"Procesando libro: {raw_book.get('title', 'Sin título')}")
-    title = raw_book.get('title', 'Sin título')
-    author = ', '.join(raw_book.get('author_name', [])) if 'author_name' in raw_book else None
-    genre = fixed_genre if fixed_genre else None
+    authors = volume_info.get("authors", []) or ["Autor desconocido"]
+    description = volume_info.get("description", "").strip()
 
+    if len(description) < 10:
+        alt_desc = fetch_openlibrary_description_improved(title, authors[0] if authors else None)
+        if alt_desc:
+            description = alt_desc
+        else:
+            subtitle = volume_info.get("subtitle", "")
+            categories = volume_info.get("categories", [])
+            description = (f"{subtitle}. " if subtitle else "") + (f"Categorías: {', '.join(categories[:3])}." if categories else "")
 
-    description = None
-    if 'description' in raw_book:
-        if isinstance(raw_book['description'], dict):
-            description = raw_book['description'].get('value')
-        elif isinstance(raw_book['description'], str):
-            description = raw_book['description']
+    if len(description.strip()) < 5:
+        descartes["Descripción insuficiente"] += 1
+        return None
 
-    cover_url = None
-    if 'cover_i' in raw_book:
-        cover_url = f"https://covers.openlibrary.org/b/id/{raw_book['cover_i']}-L.jpg"
+    image_links = volume_info.get("imageLinks", {})
+    cover_url = (
+        image_links.get("thumbnail") or
+        image_links.get("smallThumbnail") or
+        image_links.get("small") or
+        image_links.get("medium") or
+        image_links.get("large") or
+        ""
+    )
+    if not cover_url:
+        cover_url = generate_placeholder_cover_url(title, authors[0] if authors else "")
 
+    published_date = volume_info.get("publishedDate", "")
+    publisher = volume_info.get("publisher", "")
+    page_count = volume_info.get("pageCount", 0)
 
-    if not author or not description or not cover_url:
-        book_details = fetch_book_details(raw_book['key'])
-        if book_details:
-            if not author and 'authors' in book_details:      
-                author_list = []
-                for author_data in book_details['authors']:
-                    author_name = author_data.get('name', 'Desconocido')
-                    author_list.append(author_name)
-                author = ', '.join(author_list)
+    url_para_leer = volume_info.get("previewLink") or volume_info.get("infoLink") or ""
 
-            if not description and 'description' in book_details:
-                if isinstance(book_details['description'], dict):
-                    description = book_details['description'].get('value')
-                elif isinstance(book_details['description'], str):
-                    description = book_details['description']
-            
-            if not cover_url and 'covers' in book_details:
-                cover_url = f"https://covers.openlibrary.org/b/id/{book_details['covers'][0]}-L.jpg"
-
-
-    description = description or "Descripción no disponible."
-    cover_url = cover_url or None
-    author = author or "Desconocido"
+    quality_score = calculate_book_quality_score(volume_info)
 
     return {
         'title': title,
-        'author': author,
-        'genre': genre,
-        'description': description,
-        'cover_url': cover_url
+        'author': ', '.join(authors[:3]),
+        'genre': fixed_genre,
+        'description': description.strip()[:1000],
+        'cover_url': cover_url.strip()[:255],
+        'published_date': published_date,
+        'publisher': publisher,
+        'page_count': page_count,
+        'quality_score': quality_score,
+        'url_para_leer': url_para_leer
     }
 
-def insert_book(conn, cursor, book):
-    try:
-        cover_url = book['cover_url'][:255] if book['cover_url'] else None
 
-        cursor.execute("""
-            INSERT INTO dbo.Libro (titulo, autor, genero, descripcion, portada)
-            VALUES (%s, %s, %s, %s, %s)
-        """, (book['title'], book['author'], book['genre'], book['description'], cover_url))
+# === Cálculo de calidad para priorización ===
+def calculate_book_quality_score(volume_info):
+    """Calcular puntaje de calidad para priorizar libros"""
+    score = 0
+    if len(volume_info.get("title", "")) > 5:
+        score += 1
+    desc_len = len(volume_info.get("description", ""))
+    if desc_len > 50:
+        score += 2
+    elif desc_len > 20:
+        score += 1
+    if volume_info.get("imageLinks", {}).get("thumbnail"):
+        score += 2
+    if volume_info.get("authors"):
+        score += 1
+    if volume_info.get("publisher"):
+        score += 1
+    if volume_info.get("pageCount", 0) > 0:
+        score += 1
+    if volume_info.get("categories"):
+        score += 1
+    if volume_info.get("averageRating", 0) > 0:
+        score += 2
+    return score
+
+
+# === URL placeholder para portada ===
+def generate_placeholder_cover_url(title, author):
+    """Generar URL placeholder para portada si no existe"""
+    return f"https://via.placeholder.com/128x192/cccccc/000000?text={title[:10]}"
+
+
+# === Consulta de descripción en OpenLibrary ===
+def fetch_openlibrary_description_improved(title, author=None):
+    """Obtención mejorada de descripción desde OpenLibrary"""
+    if not title:
+        return None
+
+    search_attempts = [
+        {'title': title},
+        {'q': title},
+        {'title': title, 'author': author} if author else None,
+        {'q': f"{title} {author}"} if author else None
+    ]
+
+    for params in search_attempts:
+        if params is None:
+            continue
+        try:
+            resp = requests.get(OPENLIBRARY_API_URL, params=params, timeout=10)
+            resp.raise_for_status()
+            data = resp.json()
+            docs = data.get('docs', [])
+            for doc in docs:
+                for field in ['description', 'first_sentence', 'subtitle', 'notes', 'table_of_contents']:
+                    desc = doc.get(field)
+                    if desc:
+                        if isinstance(desc, dict):
+                            desc = desc.get('value') or desc.get('description')
+                        elif isinstance(desc, list):
+                            desc = ' '.join(str(i) for i in desc[:3])
+                        if isinstance(desc, str) and len(desc.strip()) >= 10:
+                            return desc.strip()[:500]
+        except Exception as e:
+            print(f"[fetch_openlibrary_description_improved][ERROR] {e}")
+            continue
+    return None
+
+
+# === Búsqueda de libros usando todas las estrategias ===
+def fetch_books_by_genre_comprehensive(genre, target_count=100):
+    """Búsqueda integral de libros usando varias estrategias"""
+    print(f"\n[fetch_books_by_genre_comprehensive] Buscando {target_count} libros del género '{genre}'")
+
+    all_books = []
+    seen_titles = set()
+    strategies = get_genre_search_strategies(genre)
+
+    strategy_priorities = {
+        'subject:': 3,
+        'categories:': 3,
+        'intitle:': 2,
+        'genre:': 2,
+        '': 1
+    }
+
+    def strategy_score(strategy):
+        for key, score in strategy_priorities.items():
+            if strategy.startswith(key):
+                return score
+        return 1
+
+    strategies.sort(key=strategy_score, reverse=True)
+
+    books_per_strategy = max(10, target_count // len(strategies))
+
+    print(f"[fetch_books_by_genre_comprehensive] Usando {len(strategies)} estrategias diferentes")
+
+    for i, strategy in enumerate(strategies):
+        if len(all_books) >= target_count:
+            break
+
+        print(f"\n--- Estrategia {i+1}/{len(strategies)}: {strategy} ---")
+
+        remaining_needed = target_count - len(all_books)
+        strategy_target = min(books_per_strategy, remaining_needed + 10)
+
+        books = fetch_books_with_strategy(strategy, genre, target_count=strategy_target)
+
+        new_books = 0
+        for book in books:
+            title_lower = book['title'].lower()
+            if title_lower not in seen_titles:
+                all_books.append(book)
+                seen_titles.add(title_lower)
+                new_books += 1
+
+        print(f"[fetch_books_by_genre_comprehensive] Agregados {new_books} libros nuevos (Total: {len(all_books)})")
+
+        if len(all_books) >= target_count:
+            break
+
+    all_books.sort(key=lambda x: x.get('quality_score', 0), reverse=True)
+
+    print(f"\n[fetch_books_by_genre_comprehensive] Total final: {len(all_books)} libros")
+    print(f"[fetch_books_by_genre_comprehensive] Estadísticas de descarte: {dict(descartes)}")
+    print(f"[fetch_books_by_genre_comprehensive] Estadísticas de búsqueda: {dict(search_stats)}")
+
+    return all_books[:target_count]
+
+
+# === Inserción mejorada de libros en la BD ===
+def insert_book_improved(conn, cursor, book):
+    """Inserción mejorada con soporte para url de lectura"""
+    print(f"[insert_book_improved] Insertando: {book['title'][:50]}...")
+
+    try:
+        cursor.execute(
+            """
+            INSERT INTO dbo.Libro (titulo, autor, genero, descripcion, portada, url_para_leer)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (book['title'], book['author'], book['genre'], book['description'], book['cover_url'], book['url_para_leer'])
+        )
         conn.commit()
-        print(f"Libro insertado: {book['title']}")
-    except pymssql.IntegrityError:
-        print(f"Libro ya existe en la base de datos: {book['title']}")
+        print(f"[insert_book_improved] ✓ Insertado exitosamente")
+        return True
+
+    except pyodbc.IntegrityError:
+        print(f"[insert_book_improved][AVISO] Ya existe o violación de integridad: {book['title'][:30]}...")
+        return False
     except Exception as e:
-        print(f"Error insertando libro {book['title']}: {e}")
+        print(f"[insert_book_improved][ERROR] {e}")
+        return False
 
-def fetch_books_by_genre(genre, limit=5, language="spa"):
-    url = f"http://openlibrary.org/subjects/{genre}.json?limit={limit}&language={language}"
-    response = requests.get(url)
+
+# === Función principal ===
+def main():
+    """Función principal con manejo avanzado de errores y reporte"""
+    print("[main] Inicio del proceso mejorado de recopilación de libros")
+
     try:
-        if response.status_code == 200:
-            data = response.json()
-            books = data.get('works', [])
-            print(f"Se recibieron {len(books)} libros.")
-            return books
-        else:
-            print(f"Error al obtener datos de la API: {response.status_code}")
-            print(f"Contenido devuelto: {response.text}")
-            return []
-    except requests.exceptions.JSONDecodeError as e:
-        print("Error al decodificar JSON. Respuesta de la API:")
-        print(response.text)
-        return []
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        genre = "drama"
+        target_count = 5  # Objetivo aumentado
+
+        print(f"[main] Configuración: Género='{genre}', Objetivo={target_count} libros")
+
+        books = fetch_books_by_genre_comprehensive(genre, target_count=target_count)
+
+        if not books:
+            print("[main] No se encontraron libros válidos")
+            return
+
+        print(f"\n[main] Iniciando inserción de {len(books)} libros en la base de datos...")
+
+        inserted_count = 0
+        for i, book in enumerate(books, 1):
+            print(f"\n[main] Procesando libro {i}/{len(books)}")
+            if insert_book_improved(conn, cursor, book):
+                inserted_count += 1
+
+        print(f"\n[main] Resumen final:")
+        print(f"[main] - Libros encontrados: {len(books)}")
+        print(f"[main] - Libros insertados: {inserted_count}")
+        print(f"[main] - Libros duplicados/fallidos: {len(books) - inserted_count}")
+        print(f"[main] - Motivos de descarte durante búsqueda: {dict(descartes)}")
+
+        cursor.close()
+        conn.close()
+        print("[main] Proceso finalizado exitosamente")
+
+    except Exception as e:
+        print(f"[main][ERROR CRÍTICO] {e}")
+        import traceback
+        traceback.print_exc()
 
 
-conn = pymssql.connect(server='HP15', user='', password='', database='BIBLIOTECA')
-cursor = conn.cursor()
-
-fixed_genre = "terror"
-books_raw = fetch_books_by_genre(fixed_genre, limit=10)
-
-for raw_book in books_raw:
-    book = parse_book_data(raw_book, fixed_genre=fixed_genre)
-    insert_book(conn, cursor, book)
-
-cursor.close()
-conn.close()
+if __name__ == "__main__":
+    main()

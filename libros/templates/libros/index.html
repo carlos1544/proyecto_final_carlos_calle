@@ -9,9 +9,6 @@
   <meta name="description" content="">
   <meta name="keywords" content="">
 
-
-  <link href="{% static 'img/favicon.png' %}" rel="icon">
-  <link href="{% static 'img/apple-touch-icon.png' %}" rel="apple-touch-icon">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   <link href="{% static 'css/main.css' %}" rel="stylesheet">
 </head>
@@ -19,6 +16,7 @@
 <body>
   <header class="hero-section">
   <img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2000&q=80" alt="Fondo de libros" class="hero-bg">
+    <p>Valor de mostrar_encuesta en plantilla: "{{ mostrar_encuesta }}"</p>
 
 
   <div class="overlay">
@@ -33,18 +31,18 @@
       </div>
     </div>
   
-    <div class="header-title">
-      <img src="{% static 'img/logo.png' %}" alt="Logo" class="logo">
-      <h1 class="title">Viajes entre líneas</h1>
-    </div>
+  <div class="header-title">
+    <img src="{% static 'img/logo.png' %}" alt="Logo" class="logo logo-inicio">
+    <h1 class="title">Viajes entre líneas</h1>
+  </div>
     
-   <div class="hamburger-menu">
+  <div class="hamburger-menu">
     <i class="fas fa-bars"></i>
   </div>
 
   <nav class="side-menu">
   <ul>
-    <li><a href="{% url 'lista_libros' %}"><i class="fas fa-home"></i> Inicio</a></li>
+    <li><a href="{% url 'inicio' %}"><i class="fas fa-home"></i> Inicio</a></li>
     <li><a href="{% url 'explorar_ia' %}"><i class="fas fa-lightbulb"></i> Explorar con IA</a></li>
     <li><a href="{% url 'explorar_libros' %}"><i class="fas fa-book"></i> Explorar libros</a></li>
     <li><a href="{% url 'historial' %}"><i class="fas fa-history"></i> Historial</a></li>
@@ -56,47 +54,37 @@
 </nav>
 
 
- <div class="search-bar">
+<div class="search-bar">
   <input type="text" id="descripcionInput" placeholder="Buscar">
   <button id="buscarBtn"><i class="fas fa-search"></i></button>
 </div>
 
 </header>
 
-
  <nav class="genre-menu">
   <div class="genre-visible" id="genreVisible">
-  <a href="#">Terror</a>
-  <a href="#">Romance</a>
-  <a href="#">Fantasía</a>
-  <a href="#">Cuentos</a>
-  <a href="#">Novelas</a>
-  <a href="#">Infantil</a>
-  <a href="#">Clásico</a>
-  <a href="#">Historia</a>
-  <a href="#">Autoayuda</a>
-  <a href="#">Crimen</a>
-  <a href="#">Misterio</a>
-  <a href="#">Drama</a>
-  <a href="#">Ciencia ficción</a>
-  <a href="#">Biografía</a>
-  <a href="#">Psicología</a>
-  <a href="#">Filosofía</a>
-  <a href="#">Educativo</a>
-  <a href="#">Juvenil</a>
-  <a href="#">Aventura</a>
-  <a href="#">Distopía</a>
-  <a href="#">Humor</a>
-  <a href="#">Policíaco</a>
-  <a href="#">Tecnología</a>
-  <a href="#">Religión</a>
-  <a href="#">Poesía</a>
-  <a href="#">Suspenso</a>
-  <a href="#">Viajes</a>
-  <a href="#">Mitología</a>
-  <a href="#">Guerra</a>
-  <a href="#">Crecimiento personal</a>
-  <a href="#">Arte</a>
+    <a href="#terror">Terror</a>
+    <a href="#romance">Romance</a>
+    <a href="#fantasia">Fantasia</a>
+    <a href="#cuentos">Cuentos</a>
+    <a href="#novelas">Novelas</a>
+    <a href="#infantil">Infantil</a>
+    <a href="#clasico">Clasico</a>
+    <a href="#historia">Historia</a>
+    <a href="#autoayuda">Autoayuda</a>
+    <a href="#crimen">Crimen</a>
+    <a href="#misterio">Misterio</a>
+    <a href="#drama">Drama</a>
+    <a href="#ciencia-ficcion">Ciencia ficcion</a>
+    <a href="#aventura">Aventura</a>
+    <a href="#humor">Humor</a>
+    <a href="#poesia">Poesia</a>
+    <a href="#suspenso">Suspenso</a>
+    <a href="#viajes">Viajes</a>
+    <a href="#mitologia">Mitologia</a>
+    <a href="#guerra">Guerra</a>
+    <a href="#crecimiento-personal">Crecimiento personal</a>
+    <a href="#arte">Arte</a>
   </div>
   <button id="toggle-genres" class="btn-toggle"onclick="toggleGenres()">Ver más</button>
 </nav>
@@ -105,24 +93,14 @@
   <section class="book-section">
     <div class="section-header">
       <h2>Recomendados</h2>
-      <a href="#" class="view-more-btn">
-        Ver más <i class="fas fa-arrow-right"></i>
-      </a>
     </div>
     <div class="book-grid-container">
-      <button class="scroll-controls scroll-left" onclick="scrollBooks('recomendados', 'left')">
-        <i class="fas fa-chevron-left"></i>
-      </button>
-      <div id="recomendadosGrid" class="book-grid">
-
+      <div id="recomendadosContainer" class="book-grid">
       </div>
-      <button class="scroll-controls scroll-right" onclick="scrollBooks('recomendados', 'right')">
-        <i class="fas fa-chevron-right"></i>
-      </button>
     </div>
   </section>
 
-  <section class="book-section">
+  <section class="book-section" id="fantasia">
     <div class="section-header">
       <h2>Fantasía</h2>
       <a href="#" class="view-more-btn">
@@ -130,22 +108,19 @@
       </a>
     </div>
     <div class="book-grid-container">
-      <button class="scroll-controls scroll-left" onclick="scrollBooks('fantasia', 'left')">
-        <i class="fas fa-chevron-left"></i>
-      </button>
-      <div id="fantasiaGrid" class="book-grid">
-        <div class="book-placeholder"></div>
-        <div class="book-placeholder"></div>
-        <div class="book-placeholder"></div>
-        <div class="book-placeholder"></div>
-        <div class="book-placeholder"></div>
-        <div class="book-placeholder"></div>
-        <div class="book-placeholder"></div>
-        <div class="book-placeholder"></div>
+      <div id="FantasiaGrid" class="book-grid">
+        {% if libros_fantasia %}
+          {% for libro in libros_fantasia %}
+            <div class="book-placeholder">
+              <a href="{% url 'detalle_libro' libro.id %}">
+                <img src="{{ libro.portada }}" alt="{{ libro.titulo }}">
+              </a>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p>No hay libros de fantasía.</p>
+        {% endif %}
       </div>
-      <button class="scroll-controls scroll-right" onclick="scrollBooks('fantasia', 'right')">
-        <i class="fas fa-chevron-right"></i>
-      </button>
     </div>
   </section>
 
@@ -157,22 +132,20 @@
       </a>
     </div>
     <div class="book-grid-container">
-      <button class="scroll-controls scroll-left" onclick="scrollBooks('drama', 'left')">
-        <i class="fas fa-chevron-left"></i>
-      </button>
-      <div id="dramaGrid" class="book-grid">
-        <div class="book-placeholder"></div>
-        <div class="book-placeholder"></div>
-        <div class="book-placeholder"></div>
-        <div class="book-placeholder"></div>
-        <div class="book-placeholder"></div>
-        <div class="book-placeholder"></div>
-        <div class="book-placeholder"></div>
-        <div class="book-placeholder"></div>
+          <div id="dramaGrid" class="book-grid">
+            {% if libros_drama %}
+              {% for libro in libros_drama %}
+                <div class="book-placeholder">
+                  <a href="{% url 'detalle_libro' libro.id %}">
+                    <img src="{{ libro.portada }}" alt="{{ libro.titulo }}">
+                  </a>
+                </div>
+              {% endfor %}
+            {% else %}
+              <p>No hay libros de drama.</p>
+            {% endif %}
+          </div>
       </div>
-      <button class="scroll-controls scroll-right" onclick="scrollBooks('drama', 'right')">
-        <i class="fas fa-chevron-right"></i>
-      </button>
     </div>
   </section>
 
@@ -184,59 +157,105 @@
       </a>
     </div>
     <div class="book-grid-container">
-      <button class="scroll-controls scroll-left" onclick="scrollBooks('romance', 'left')">
-        <i class="fas fa-chevron-left"></i>
-      </button>
       <div id="romanceGrid" class="book-grid">
-        <div class="book-placeholder"></div>
-        <div class="book-placeholder"></div>
-        <div class="book-placeholder"></div>
-        <div class="book-placeholder"></div>
-        <div class="book-placeholder"></div>
-        <div class="book-placeholder"></div>
-        <div class="book-placeholder"></div>
-        <div class="book-placeholder"></div>
+        {% if libros_romance %}
+          {% for libro in libros_romance %}
+                <div class="book-placeholder">
+                  <a href="{% url 'detalle_libro' libro.id %}">
+                    <img src="{{ libro.portada }}" alt="{{ libro.titulo }}">
+                  </a>
+                </div>
+              {% endfor %}
+        {% else %}
+          <p>No hay libros de romance.</p>
+        {% endif %}
       </div>
-      <button class="scroll-controls scroll-right" onclick="scrollBooks('romance', 'right')">
-        <i class="fas fa-chevron-right"></i>
-      </button>
     </div>
   </section>
 
-  <section class="book-section">
+  <section class="book-section" id="terror">
     <div class="section-header">
-      <h2>Novelas</h2>
+      <h2>Terror</h2>
       <a href="#" class="view-more-btn">
         Ver más <i class="fas fa-arrow-right"></i>
       </a>
     </div>
     <div class="book-grid-container">
-      <button class="scroll-controls scroll-left" onclick="scrollBooks('novelas', 'left')">
-        <i class="fas fa-chevron-left"></i>
-      </button>
       <div id="novelasGrid" class="book-grid">
-        <div class="book-placeholder"></div>
-        <div class="book-placeholder"></div>
-        <div class="book-placeholder"></div>
-        <div class="book-placeholder"></div>
-        <div class="book-placeholder"></div>
-        <div class="book-placeholder"></div>
-        <div class="book-placeholder"></div>
-        <div class="book-placeholder"></div>
+        {% if libros_terror%}
+          {% for libro in libros_terror %}
+                <div class="book-placeholder">
+                  <a href="{% url 'detalle_libro' libro.id %}">
+                    <img src="{{ libro.portada }}" alt="{{ libro.titulo }}">
+                  </a>
+                </div>
+              {% endfor %}
+        {% else %}
+          <p>No hay libros de terror.</p>
+        {% endif %}
       </div>
-      <button class="scroll-controls scroll-right" onclick="scrollBooks('novelas', 'right')">
-        <i class="fas fa-chevron-right"></i>
-      </button>
     </div>
   </section>
 </main>
+   {% if mostrar_encuesta %}
+  <p>mostrar_encuesta = "{{ mostrar_encuesta }}"</p>
+    <div id="modal-preferencia-1" class="modal hidden">
+      <div class="modal-content">
+        <h2>Queremos conocer más de ti</h2>
+        <p>¿Qué géneros te gustan?</p>
+        <div class="options">
+          <button class="option">Fantasia</button>
+          <button class="option">Romance</button>
+          <button class="option">Ciencia ficcion</button>
+          <button class="option">Terror</button>
+          <button class="option">Cuentos</button>
+          <button class="option">Novelas</button>
+          <button class="option">Clasico</button>
+          <button class="option">Autoayuda</button>
+          <button class="option">Drama</button>
+          <button class="option">Misterio</button>
+          <button class="option">Crimen</button>
+        </div>
+        <button id="next-1" class="btn-next">Siguiente</button>
+      </div>
+    </div>
 
- 
+    <div id="modal-preferencia-2" class="modal hidden">
+      <div class="modal-content">
+        <h2>¿Prefieres finales felices o impactantes?</h2>
+        <div class="options">
+          <button class="option">Finales Abiertos</button>
+          <button class="option">Finales Impactantes</button>
+        </div>
+        <button id="next-2" class="btn-next">Siguiente</button>
+      </div>
+    </div>
 
+    <div id="modal-preferencia-3" class="modal hidden">
+      <div class="modal-content">
+        <h2>¿Te interesa leer libros populares o poco conocidos?</h2>
+        <div class="options">
+          <button class="option">Libros populares</button>
+          <button class="option">Libros poco conocidos</button>
+        </div>
+        <button id="finish" class="btn-next">Finalizar</button>
+      </div>
+    </div>
+    <p>Valor de mostrar_encuesta en plantilla: "{{ mostrar_encuesta }}"</p>
 
-  <script src="{% static 'js/main.js' %}"></script>
-
-
+<style>
+  .book-cover {
+    width: 120px;
+    height: auto;
+    border: 2px solid white;
+    margin: 5px;
+  }
+  .book-placeholder {
+    display: inline-block;
+  }
+</style>
+{% endif %}
+ <script src="{% static 'js/main.js' %}"></script>
 </body>
 
 </html>

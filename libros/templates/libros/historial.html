@@ -7,34 +7,65 @@
   <link href="{% static 'css/main.css' %}" rel="stylesheet">
 </head>
 <body>
-  <div class="contenedor-historial">
-     <button class="btn-inicio" onclick="window.location.href='{% url 'lista_libros' %}'">← Inicio</button>
+  <div class="historial-page">
+     <button class="btn-inicio" onclick="window.location.href='{% url 'inicio' %}'">← Inicio</button>
     <h1 class="titulo-historial">Historial</h1>
     
     <div class="panel-historial">
       <div class="columna izquierda">
-        <div class="seccion">
-          <h2>Libros por leer</h2>
-          <div class="tarjetas">
-            <div class="tarjeta"></div>
-          </div>
-        </div>
+  <div class="seccion">
+    <h2>Libros por leer</h2>
+        <div class="tarjetas">
+          {% for libro_usuario in libros_por_leer %}
+            {% if libro_usuario.libro and libro_usuario.libro.id %}
+              <div class="tarjeta">
+                <a href="{% url 'detalle_libro' libro_usuario.libro.id %}">
+                  <img src="{{ libro_usuario.libro.portada.url }}" alt="{{ libro_usuario.libro.titulo }}">
+                  <p>{{ libro_usuario.libro.titulo }}</p>
+                </a>
+              </div>
+            {% endif %}
+          {% empty %}
+            <p>No hay libros por leer.</p>
+          {% endfor %}
 
-        <div class="seccion">
-          <h2>Libros leídos</h2>
-          <div class="tarjetas">
-            <div class="tarjeta"></div>
-            <div class="tarjeta"></div>
-          </div>
         </div>
       </div>
+
+      <div class="seccion">
+        <h2>Libros leídos</h2>
+        <div class="tarjetas">
+          {% for libro_usuario in libros_leidos %}
+            {% if libro_usuario.libro and libro_usuario.libro.id %}
+              <div class="tarjeta">
+                <a href="{% url 'detalle_libro' libro_usuario.libro.id %}">
+                  <img src="{{ libro_usuario.libro.portada.url }}" alt="{{ libro_usuario.libro.titulo }}">
+                  <p>{{ libro_usuario.libro.titulo }}</p>
+                </a>
+              </div>
+            {% endif %}
+          {% empty %}
+            <p>No hay libros leídos.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
 
       <div class="columna derecha">
         <div class="seccion">
           <h2>Historial de recomendaciones por IA</h2>
-          <div class="tarjetas">
-            <div class="tarjeta"></div>
-            <div class="tarjeta"></div>
+            <div class="tarjetas">
+              {% for item in recomendaciones_ia %}
+                <div class="tarjeta">
+                  <a href="{% url 'detalle_libro' item.libro.id %}">
+                    <img src="{{ item.libro.portada }}" alt="{{ item.libro.titulo }}">
+                  </a>
+                  <p>{{ item.libro.titulo }}</p>
+                </div>
+              {% empty %}
+                <p>No hay recomendaciones aún.</p>
+              {% endfor %}
+            </div>
           </div>
         </div>
       </div>

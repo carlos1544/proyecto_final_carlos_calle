@@ -12,13 +12,106 @@
 
 <body>
   <div class="main-container">
-    <div class="username"><i class="fas fa-user-circle"></i> Debby Duar</div>
-    <ul class="config-options">
-      <li><a href="#"><i class="fas fa-user-edit"></i> Cambiar nombre de usuario</a></li>
-      <li><a href="#"><i class="fas fa-key"></i> Cambiar contraseña</a></li>
-      <li><a href="#"><i class="fas fa-user-times"></i> Eliminar cuenta</a></li>
-      <li><a href="#"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</a></li>
-    </ul>
+    <button class="btn-inicio" onclick="window.location.href='{% url 'inicio' %}'">← Inicio</button>
+    <div class="username"><i class="fas fa-user-circle"></i>{% if user.is_authenticated %}
+            {{ user.nombre }}
+          {% else %}
+            Invitado
+          {% endif %}</div>
+    
+   <ul class="config-options">
+  <li><a href="#" onclick="mostrarFormulario('form-nombre')"><i class="fas fa-user-edit"></i> Cambiar nombre de usuario</a></li>
+  <div id="form-nombre" class="formulario-config hidden">
+  <h3>Cambiar nombre de usuario</h3>
+  <form method="POST" action="{% url 'cambiar_nombre' %}">
+    {% csrf_token %}
+    <input type="text" name="nuevo_nombre" placeholder="Nuevo nombre" required>
+    <button type="submit">Guardar</button>
+  </form>
+</div>
+
+<li><a href="#" onclick="mostrarFormulario('form-contrasena')"><i class="fas fa-key"></i> Cambiar contraseña</a></li>
+  <div id="form-contrasena" class="formulario-config hidden">
+  <h3>Cambiar contraseña</h3>
+  <form method="POST" action="{% url 'cambiar_contrasena' %}">
+    {% csrf_token %}
+    <input type="password" name="password_actual" placeholder="Contraseña actual" required>
+    <input type="password" name="nueva_password" placeholder="Nueva contraseña" required>
+    <button type="submit">Cambiar</button>
+  </form>
+</div>
+
+
+  <li><a href="#" onclick="mostrarFormulario('form-eliminar')"><i class="fas fa-user-times"></i> Eliminar cuenta</a></li>
+  <div id="form-eliminar" class="formulario-config hidden">
+  <h3>¿Estás seguro de eliminar tu cuenta?</h3>
+  <form method="POST" action="{% url 'eliminar_cuenta' %}">
+    {% csrf_token %}
+    <input type="password" name="confirmacion_password" placeholder="Confirma tu contraseña" required>
+    <button type="submit" style="background-color: red;">Eliminar cuenta</button>
+  </form>
+</div>
+  <li><a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</a></li>
+</ul>
+
   </div>
+<script>
+  function mostrarFormulario(id) {
+    document.querySelectorAll('.formulario-config').forEach(form => form.classList.add('hidden'));
+    document.getElementById(id).classList.remove('hidden');
+  }
+</script>
+
+<style>
+  .messages {
+  list-style: none;
+  padding: 0;
+  margin: 10px;
+}
+.messages li {
+  background-color: #2d3748;
+  color: white;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+.messages li.error { background-color: #e53e3e; }
+.messages li.success { background-color: #38a169; }
+
+
+.hidden {
+  display: none;
+}
+
+.formulario-config {
+  margin-top: 20px;
+  padding: 15px;
+  border: 1px solid #ccc;
+  background-colorrgba(27, 47, 82, 0.89);
+  color: white;
+  border-radius: 10px;
+  max-width: 400px;
+}
+
+.formulario-config input {
+  display: block;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 8px;
+  border-radius: 5px;
+  border: none;
+}
+
+.formulario-config button {
+  background-color:rgba(27, 47, 82, 0.89);
+  color: white;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+</style>
+
 </body>
 </html>

@@ -3,71 +3,221 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
   <title>Explorar libros - Viajes entre líneas</title>
+
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   <link href="{% static 'css/main.css' %}" rel="stylesheet">
 </head>
 
 <body>
-  <header class="header-favoritos">
-  <div class="menu-izquierda">
-    <i class="fas fa-bars"></i>
+  <header>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+  <div class="header-container">
+  <div class="hamburger-menu">
+      <i class="fas fa-bars"></i>
+    </div>
+
+    <nav class="side-menu">
+    <ul>
+      <li><a href="{% url 'inicio' %}"><i class="fas fa-home"></i> Inicio</a></li>
+      <li><a href="{% url 'explorar_ia' %}"><i class="fas fa-lightbulb"></i> Explorar con IA</a></li>
+      <li><a href="{% url 'historial' %}"><i class="fas fa-history"></i> Historial</a></li>
+      <li><a href="{% url 'favoritos' %}"><i class="fas fa-heart"></i> Mis favoritos</a></li>
+      <li><a href="{% url 'perfil' %}"><i class="fas fa-user"></i> Perfil</a></li>
+      <li><a href="{% url 'configuracion' %}"><i class="fas fa-cog"></i> Configuración</a></li>
+      <li><a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</a></li>
+    </ul>
+  </nav>
+    
+
+
+<div class="barra-superior">
+  <div class="centro">
+    <div class="buscar-container">
+      <input type="text" id="descripcionInput" placeholder="Buscar">
+      <button id="buscarBtn"><i class="fas fa-search"></i></button>
+    </div>
   </div>
 
-  <div class="busqueda-centro">
-    <input type="text" placeholder="Buscar" />
-    <i class="fas fa-search"></i>
+  <div class="logo-container">
+    <img src="{% static 'img/logo.png' %}" alt="Logo" class="logo logo-explorar">
+    <span class="logo-text">Viajes entre líneas</span>
   </div>
+</div>
 
-  <div class="logo-derecha">
-    <img src="{% static 'img/logo.png' %}" alt="Logo" class="logo">
-    <span>Viajes entre líneas</span>
-  </div>
+
+ 
 </header>
 
     
-  <nav class="genre-menu">
-      <a href="#">Terror</a>
-      <a href="#">Romance</a>
-      <a href="#">Fantasía</a>
-      <a href="#">Cuentos</a>
-      <a href="#">Novelas</a>
-      <a href="#">Infantil</a>
-      <a href="#">Clásico</a>
-      <a href="#">Historia</a>
-      <a href="#">Autoayuda</a>
-      <a href="#">Crimen</a>
-      <div class="dropdown">
-        <button>más</button>
-        <div class="dropdown-content">
-          <a href="#">Misterio</a>
-          <a href="#">Drama</a>
-          <a href="#">Ciencia ficción</a>
-        </div>
-      </div>
-    </nav>
+ <nav class="genre-menu">
+  <div class="genre-visible" id="genreVisible">
+    <a href="#terror">Terror</a>
+    <a href="#romance">Romance</a>
+    <a href="#fantasia">Fantasia</a>
+    <a href="#cuentos">Cuentos</a>
+    <a href="#novelas">Novelas</a>
+    <a href="#infantil">Infantil</a>
+    <a href="#clasico">Clasico</a>
+    <a href="#historia">Historia</a>
+    <a href="#autoayuda">Autoayuda</a>
+    <a href="#crimen">Crimen</a>
+    <a href="#misterio">Misterio</a>
+    <a href="#drama">Drama</a>
+    <a href="#ciencia-ficcion">Ciencia ficcion</a>
+    <a href="#aventura">Aventura</a>
+    <a href="#humor">Humor</a>
+    <a href="#poesia">Poesia</a>
+    <a href="#suspenso">Suspenso</a>
+    <a href="#viajes">Viajes</a>
+    <a href="#mitologia">Mitologia</a>
+    <a href="#guerra">Guerra</a>
+    <a href="#crecimiento-personal">Crecimiento personal</a>
+    <a href="#arte">Arte</a>
+  </div>
+  <button id="toggle-genres" class="btn-toggle"onclick="toggleGenres()">Ver más</button>
+</nav>
  
 
-  <main>
-    <section class="book-section">
-      <h2>Clásico</h2>
-      <div class="book-grid">
-        <div class="book-card"></div>
-        <div class="book-card"></div>
-        <div class="book-card"></div>
-        <div class="book-card"></div>
+<main>
+  <section class="book-section" id="fantasia">
+    <div class="section-header">
+      <h2>Fantasía</h2>
+      <a href="#" class="view-more-btn ver-mas-btn" data-genero="fantasia" data-target="FantasiaGrid">
+        Ver más <i class="fas fa-arrow-right"></i>
+      </a>
+
+
+    </div>
+    <div class="book-grid-container">
+      <div id="FantasiaGrid" class="book-grid">
+        {% if libros_fantasia %}
+          {% for libro in libros_fantasia %}
+                <div class="book-placeholder">
+                  <a href="{% url 'detalle_libro' libro.id %}">
+                    <img src="{{ libro.portada }}" alt="{{ libro.titulo }}">
+                  </a>
+                </div>
+              {% endfor %}
+        {% else %}
+          <p>No hay libros de fantasia.</p>
+        {% endif %}
       </div>
-    </section>
-    <section class="book-section">
-      <h2>Novelas</h2>
-      <div class="book-grid">
-        <div class="book-card"></div>
-        <div class="book-card"></div>
-        <div class="book-card"></div>
-        <div class="book-card"></div>
+    </div>
+  </section>
+
+  <section class="book-section">
+    <div class="section-header">
+      <h2>Drama</h2>
+      <a href="#" class="view-more-btn ver-mas-btn" data-genero="drama" data-target="dramaGrid">
+        Ver más <i class="fas fa-arrow-right"></i>
+      </a>
+
+    </div>
+    <div class="book-grid-container">
+      <div id="dramaGrid" class="book-grid">
+        {% if libros_drama %}
+          {% for libro in libros_drama %}
+                <div class="book-placeholder">
+                  <a href="{% url 'detalle_libro' libro.id %}">
+                    <img src="{{ libro.portada }}" alt="{{ libro.titulo }}">
+                  </a>
+                </div>
+              {% endfor %}
+        {% else %}
+          <p>No hay libros de drama.</p>
+        {% endif %}
       </div>
-    </section>
-  </main>
+    </div>
+  </section>
+
+  <section class="book-section">
+    <div class="section-header">
+      <h2>Romance</h2>
+      <a href="#" class="view-more-btn ver-mas-btn" data-genero="romance" data-target="romanceGrid">
+        Ver más <i class="fas fa-arrow-right"></i>
+      </a>
+
+    </div>
+    <div class="book-grid-container">
+      <div id="romanceGrid" class="book-grid">
+        {% if libros_romance %}
+          {% for libro in libros_romance %}
+                <div class="book-placeholder">
+                  <a href="{% url 'detalle_libro' libro.id %}">
+                    <img src="{{ libro.portada }}" alt="{{ libro.titulo }}">
+                  </a>
+                </div>
+              {% endfor %}
+        {% else %}
+          <p>No hay libros de romance.</p>
+        {% endif %}
+
+      </div>
+    </div>
+  </section>
+
+  <section class="book-section" id="terror">
+    <div class="section-header">
+      <h2>Terror</h2>
+      <a href="#" class="view-more-btn ver-mas-btn" data-genero="terror" data-target="terrorGrid">
+        Ver más <i class="fas fa-arrow-right"></i>
+      </a>
+    </div>
+    <div class="book-grid-container">
+      <div id="terrorGrid" class="book-grid">
+        {% if libros_terror%}
+          {% for libro in libros_terror %}
+                <div class="book-placeholder">
+                  <a href="{% url 'detalle_libro' libro.id %}">
+                    <img src="{{ libro.portada }}" alt="{{ libro.titulo }}">
+                  </a>
+                </div>
+              {% endfor %}
+        {% else %}
+          <p>No hay libros de terror.</p>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+</main>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+    const botonesVerMas = document.querySelectorAll('.ver-mas-btn');
+
+    botonesVerMas.forEach(boton => {
+      boton.addEventListener('click', function (e) {
+        e.preventDefault();
+
+        const genero = boton.dataset.genero;
+        const gridId = boton.dataset.target;
+        const contenedor = document.getElementById(gridId);
+
+        fetch(`/libros_genero/${genero}/`)
+          .then(response => response.json())
+          .then(data => {
+            contenedor.innerHTML = ''; // Limpiar libros actuales
+
+            data.libros.forEach(libro => {
+              contenedor.innerHTML += `
+                <div class="book-placeholder">
+                  <a href="/libro/${libro.id}/">
+                    <img src="${libro.portada}" alt="${libro.titulo}">
+                  </a>
+                </div>
+              `;
+            });
+
+            boton.remove(); // Quitar botón luego de cargar todos
+          })
+          .catch(error => console.error('Error al cargar libros:', error));
+      });
+    });
+  });
+
+</script>
+  <script src="{% static 'js/main.js' %}"></script>
 </body>
 </html>

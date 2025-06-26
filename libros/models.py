@@ -1,104 +1,58 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.contrib.auth.hashers import make_password
-from django.utils.timezone import now
-from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
-
-from django.contrib.auth.hashers import make_password
-from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.utils.timezone import now
 from django.db import models
 
+
+from django.utils.timezone import now
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
+from django.utils.timezone import now
 from django.db import models
 
-class UsuarioManager(models.Manager):
-    def create_user(self, nombre, email, contraseña=None):
-        usuario = self.model(
-            nombre=nombre,
-            email=email,
-            contraseña=contraseña,  
-        )
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
+from django.utils.timezone import now
+from django.db import models
+
+class UsuarioManager(BaseUserManager):
+    def create_user(self, nombre, email=None, password=None):
+        if not nombre:
+            raise ValueError('El nombre es obligatorio')
+        usuario = self.model(nombre=nombre, email=email)
+        usuario.set_password(password)
         usuario.save(using=self._db)
         return usuario
 
-class Usuario(models.Model):
+    def create_superuser(self, nombre, email=None, password=None):
+        usuario = self.create_user(nombre, email, password)
+        usuario.is_staff = True
+        usuario.is_superuser = True
+        usuario.save(using=self._db)
+        return usuario
+
+class Usuario(AbstractBaseUser, PermissionsMixin):
     nombre = models.CharField(max_length=150, unique=True)
-    email = models.EmailField(unique=True)
-    contraseña = models.CharField(max_length=128)  
+    email = models.EmailField(unique=True, null=True, blank=True)
     fecha_creacion = models.DateTimeField(default=now)
+    is_staff = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['nombre']
+    objects = UsuarioManager()
 
-    class Meta:
-        db_table = 'Usuario'
-        managed = False
+    USERNAME_FIELD = 'nombre'
+    REQUIRED_FIELDS = ['email']
 
     def __str__(self):
         return self.nombre
-
-    def has_perm(self, perm, obj=None):
-        """El usuario tiene un permiso específico."""
-        return True
-
-    def has_module_perms(self, app_label):
-        """El usuario tiene permisos para ver la aplicación especificada."""
-        return True
-
-    @property
-    def is_staff(self):
-        """El usuario es parte del personal administrativo."""
-        return False
-
-    @property
-    def is_superuser(self):
-        """El usuario tiene permisos de superusuario."""
-        return False
-
-    @property
-    def is_active(self):
-        """El usuario está activo."""
-        return True
-
-    @property
-    def is_authenticated(self):
-        """El usuario está autenticado."""
-        return True
-
-    @property
-    def is_anonymous(self):
-        """El usuario no está autenticado."""
-        return False
-
-#login
-from django.db import models
-from django.utils.timezone import now
-
-class UsuarioLogin(models.Model):
-    email = models.EmailField(unique=True, verbose_name="Correo Electrónico")
-    contraseña = models.CharField(max_length=128, verbose_name="Contraseña")
-    fecha_creacion = models.DateTimeField(default=now, verbose_name="Fecha de Creación")
-
-    class Meta:
-        db_table = 'Usuario'
-        verbose_name = "Usuario"
-        verbose_name_plural = "Usuarios"
-
-    def __str__(self):
-        return self.email
-
-    def verificar_contraseña(self, contraseña):
-        """Compara la contraseña ingresada con la almacenada."""
-        return self.contraseña == contraseña
-
-
+    
 class Libro(models.Model):
     titulo = models.CharField(max_length=200)
     autor = models.CharField(max_length=100)
     genero = models.CharField(max_length=255, blank=True, null=True)
     descripcion = models.CharField(max_length=500, blank=True, null=True)
-    portada = models.CharField(max_length=500, blank=True, null=True) 
+    portada = models.CharField(max_length=500, blank=True, null=True)
+    url_para_leer = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
         return self.titulo
@@ -109,8 +63,51 @@ class Libro(models.Model):
 
 
 
+class PreferenciaUsuario(models.Model):
+    usuario = models.OneToOneField('Usuario', on_delete=models.CASCADE, db_column='usuario_id')
+    generos = models.JSONField()
+    tipo_final = models.CharField(max_length=50)
+    tipo_libro = models.CharField(max_length=50)
+
+    def __str__(self):
+        return f"Preferencias de {self.usuario.nombre}"
+ 
 
 
 
+class SeleccionLibro(models.Model):
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    libro = models.ForeignKey(Libro, on_delete=models.CASCADE)
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        managed = False  # Para que Django no intente crearla ni modificarla
+        db_table = 'SeleccionLibro'
 
 
+class Favorito(models.Model):
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    libro = models.ForeignKey('Libro', on_delete=models.CASCADE)
+    fecha_agregado = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('usuario', 'libro')  # Para evitar duplicados
+
+
+class RecomendacionIA(models.Model):
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    libro = models.ForeignKey('Libro', on_delete=models.CASCADE)
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.usuario.nombre} - {self.libro.titulo}"
+from django.conf import settings
+class LibroUsuario(models.Model):
+    ESTADOS = [
+        ('leido', 'Leído'),
+        ('por_leer', 'Por leer'),
+    ]
+    
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    libro = models.ForeignKey(Libro, on_delete=models.CASCADE)
+    estado = models.CharField(max_length=10, choices=[('leido', 'Leído'), ('por_leer', 'Por leer')], null=True, blank=True)
